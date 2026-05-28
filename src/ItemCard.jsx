@@ -1,9 +1,8 @@
 import React from 'react';
 
-// We now accept the 'isDarkMode' variable from Home.jsx
 function ItemCard({ item, addToCart, isDarkMode }) {
   
-  // The card styles change depending on the theme
+
   const cardStyle = {
     border: isDarkMode ? '10px solid #555' : '10px solid #ccc',
     backgroundColor: isDarkMode ? '#0f0e0e' : '#fff',
