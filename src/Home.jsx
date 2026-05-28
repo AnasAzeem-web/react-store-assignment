@@ -64,7 +64,7 @@ function Home() {
           <input 
             type="range" 
             min="0" 
-            max="300" 
+            max="200" 
             value={maxPrice}
             onChange={(event) => setMaxPrice(Number(event.target.value))}
             style={{ cursor: 'pointer' }}
