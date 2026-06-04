@@ -5,7 +5,6 @@ from typing import Optional
 
 app = FastAPI()
 
-# --- THE CORS BOUNCER FIX ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
@@ -14,7 +13,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- BLUEPRINTS ---
+#                                    --- BLUEPRINTS ---
 class Product(BaseModel):
     id: int
     name: str
@@ -25,20 +24,21 @@ class Product(BaseModel):
 class Category(BaseModel):
     id: int
     name: str
+    category: str
 
 class Order(BaseModel):
     id: int
     customer_name: str
     total_amount: float
 
-# --- THE VAULTS (Memory Banks) ---
+#                           --- THE VAULTS (Memory Banks) ---
 products_db = []
 categories_db = []
 orders_db = []
 cart_db = []
 
 
-# --- PRODUCTS DOORS ---
+#                            --- PRODUCTS DOORS ---
 @app.get("/products")
 def get_products():
     return products_db
@@ -72,7 +72,7 @@ def delete_product(product_id: int):
     raise HTTPException(status_code=404, detail="Product not found")
 
 
-# --- CATEGORIES DOORS ---
+#                               --- CATEGORIES DOORS ---
 @app.get("/categories")
 def get_categories():
     return categories_db
@@ -81,7 +81,7 @@ def get_categories():
 def get_category(category_id: int):
     for c in categories_db:
         if c.id == category_id:
-            return c
+            return c.category
     raise HTTPException(status_code=404, detail="Category not found")
 
 @app.post("/categories", status_code=201)
@@ -90,7 +90,7 @@ def add_category(category: Category):
     return {"message": "Category successfully added!"}
 
 
-# --- CART DOORS ---
+#                                   --- CART DOORS ---
 @app.get("/cart")
 def get_cart():
     return cart_db
@@ -112,7 +112,7 @@ def remove_from_cart(product_id: int):
     raise HTTPException(status_code=404, detail="Product not found in cart")
 
 
-# --- ORDERS / CHECKOUT DOORS ---
+#                          --- ORDERS / CHECKOUT ---
 @app.get("/orders")
 def get_orders():
     return orders_db
