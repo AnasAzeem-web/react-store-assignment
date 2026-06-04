@@ -1,28 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ItemCard from './ItemCard';
 
 function Home() {
   const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [maxPrice, setMaxPrice] = useState(200); 
+  const [products, setProducts] = useState([]);
 
-  const sampleItems = [
-    { id: 1, name: "Wireless Headphones", price: 99, category: "Electronics" },
-    { id: 2, name: "Mechanical Keyboard", price: 120, category: "Electronics" },
-    { id: 3, name: "Coffee Mug", price: 15, category: "Home" }
-  ];
+  useEffect(() => {
+    async function fetchProductsFromBackend() {
+      const response = await fetch("http://localhost:8000/products");
+      const data = await response.json();
+      setProducts(data); 
+    }
+    fetchProductsFromBackend();
+  }, []); 
 
-  const addToCart = (item) => {
+  const addToCart = async (item) => {
+    await fetch(`http://localhost:8000/cart/add/${item.id}`, {
+      method: "POST"
+    });
     setCart([...cart, item]); 
   };
 
-  const filteredItems = sampleItems.filter((item) => {
-    
+  const handleCheckout = async () => {
+    if (cart.length === 0) {
+      alert("Your cart is empty!");
+      return;
+    }
+
+    const totalCost = cart.reduce((sum, item) => sum + item.price, 0);
+
+    const response = await fetch("http://localhost:8000/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: Math.floor(Math.random() * 10000), 
+        customer_name: "Guest Shopper",
+        total_amount: totalCost
+      })
+    });
+
+    if (response.ok) {
+      alert("Success! Your order has been placed.");
+      setCart([]); 
+    }
+  };
+
+  const filteredItems = products.filter((item) => {
     const textMatches = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
     const priceMatches = item.price <= maxPrice;
-    
     return textMatches && priceMatches;
   });
 
@@ -44,13 +72,22 @@ function Home() {
         {isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
       </button>
 
+    
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isDarkMode ? '#333333' : '#f0f0f0', padding: '10px', borderRadius: '8px', marginBottom: '20px' }}>
         <h2>Our Products</h2>
-        <h2>🛒 Cart: {cart.length} items</h2>
+        
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+          <h2>🛒 Cart: {cart.length} items</h2>
+          <button 
+            onClick={handleCheckout}
+            style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Checkout
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', alignItems: 'center' }}>
-        
         <input 
           type="text"  
           placeholder="Search items..." 
@@ -70,14 +107,15 @@ function Home() {
             style={{ cursor: 'pointer' }}
           />
         </div>
-
       </div>
       
+    
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {filteredItems.map((currentItem) => (
           <ItemCard key={currentItem.id} item={currentItem} addToCart={addToCart} isDarkMode={isDarkMode} />
         ))}
       </div>
+      
     </div>
   );
 }

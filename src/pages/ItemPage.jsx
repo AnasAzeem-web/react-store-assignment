@@ -1,10 +1,37 @@
+import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import items from "../data/items";
 
 function ItemPage() {
   const { id } = useParams();
+  const [item, setItem] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const item = items.find((item) => item.id === Number(id));
+  useEffect(() => {
+    async function fetchItem() {
+      try {
+  
+        const response = await fetch(`http://localhost:8000/products/${id}`);
+        
+        if (!response.ok) {
+          setItem(null); // Triggers the "Item not found" message if 404
+        } else {
+          const data = await response.json();
+          setItem(data);
+        }
+      } catch (error) {
+        console.error("Backend error:", error);
+        setItem(null);
+      } finally {
+        setIsLoading(false); 
+      }
+    }
+
+    fetchItem();
+  }, [id]);
+
+  if (isLoading) {
+    return <div className="page empty-state">Loading item details...</div>;
+  }
 
   if (!item) {
     return <div className="page empty-state">Item not found.</div>;
